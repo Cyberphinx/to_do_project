@@ -1,1 +1,3 @@
-/target
+/backend/target
+/integration-tests/backend-tests/node_modules
+.env

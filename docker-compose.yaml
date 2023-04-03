@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  database:
+    image: postgres:latest
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_PASSWORD=keyboardcat
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: psql -U postgres -q -d postgres -c "SELECT 'ready';"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  nodejs-express:
+    profiles:
+      - nodejs-express
+      - compare-frontend
+      - js-vue
+      - rust-yew
+      - rust-yew-solution
+    build: ./backend/nodejs/express
+    volumes:
+      - ./backend/nodejs/express:/code/
+    depends_on:
+      - database
+    expose:
+      - "6000"
+    ports:
+      - "6000:6000"
+    environment:
+      - PORT=6000
+      - JWT_SECRET=keyboardcat
+      - SALT_ROUNDS=10
+      - DB_CONNECTION=postgresql://postgres:keyboardcat@database
+  api-test:
+    profiles:
+      - nodejs-express
+    build: ./integration-tests/backend-tests
+    volumes:
+      - ./integration-tests/backend-tests:/code/
+    environment:
+      - API_PORT=6000
+      - API_URI=http://rust-axum
+      - JWT_SECRET=keyboardcat
+      - DB_CONNECTION=postres://postgres:keyboardcat@database/postgres
+  js-vue:
+    profiles:
+      - js-vue
+      - compare-frontend
+    build: ./frontend/js/vue
+    volumes:
+      - ./frontend/js/vue:/code/
+    depends_on:
+      - nodejs-express
+    expose:
+      - "8080"
+    ports:
+      - "8080"
+    environment:
+      - VUE_APP_API_URI=http://localhost:6000
+
+volumes:
+  db-data:
