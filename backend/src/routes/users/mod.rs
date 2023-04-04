@@ -1,6 +1,11 @@
+use axum::http::StatusCode;
+use sea_orm::TryIntoModel;
 use serde::{Deserialize, Serialize};
 
+use crate::{database::users, utilities::app_error::AppError};
+
 pub mod create_user;
+pub mod login;
 
 #[derive(Serialize, Deserialize)]
 pub struct ResponseDataUser {
@@ -18,4 +23,11 @@ pub struct ResponseUser {
 pub struct RequestCreateUser {
     username: String,
     password: String,
+}
+
+fn convert_active_to_model(user: users::ActiveModel) -> Result<users::Model, AppError> {
+    user.try_into_model().map_err(|error| {
+        eprintln!("Error converting back into model: {}", error);
+        AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Error creating user")
+    })
 }

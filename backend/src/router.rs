@@ -1,6 +1,15 @@
-use crate::{routes::{hello_world::hello_world, users::create_user::create_user}, app_state::AppState};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 
-use axum::{Router, routing::{get, post}};
+use crate::{
+    app_state::AppState,
+    routes::{
+        hello_world::hello_world,
+        users::{create_user::create_user, login::login},
+    },
+};
 
 // build the router
 pub fn create_router(app_state: AppState) -> Router {
@@ -8,5 +17,6 @@ pub fn create_router(app_state: AppState) -> Router {
         // `GET /` goes to `root`
         .route("/", get(hello_world))
         .route("/api/v1/users", post(create_user))
+        .route("/api/v1/users/login", post(login))
         .with_state(app_state)
 }

@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, Json};
-use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TryIntoModel};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, Set};
 
-use super::{RequestCreateUser, ResponseDataUser, ResponseUser};
+use super::{RequestCreateUser, ResponseDataUser, ResponseUser, convert_active_to_model};
 use crate::{
     database::users,
     utilities::{
@@ -41,12 +41,9 @@ pub async fn create_user(
                     "Something went wrong, please try again",
                 )
             }
-        })?
-        .try_into_model()
-        .map_err(|error| {
-            eprintln!("Error converting back into model: {}", error);
-            AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Error creating user")
         })?;
+
+        let user = convert_active_to_model(user)?;        
 
     Ok(Json(ResponseDataUser {
         data: ResponseUser {
