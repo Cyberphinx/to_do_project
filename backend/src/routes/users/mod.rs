@@ -6,6 +6,7 @@ use crate::{database::users, utilities::app_error::AppError};
 
 pub mod create_user;
 pub mod login;
+pub mod logout;
 
 #[derive(Serialize, Deserialize)]
 pub struct ResponseDataUser {

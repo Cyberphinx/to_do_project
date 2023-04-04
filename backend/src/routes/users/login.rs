@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::{Json, extract::State};
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait, IntoActiveModel, Set, ActiveModelTrait, TryIntoModel};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait, IntoActiveModel, Set, ActiveModelTrait};
 
 use crate::routes::users::{ResponseUser, convert_active_to_model};
 use crate::utilities::hash::verify_password;
@@ -27,7 +27,7 @@ pub async fn login(
 
     if let Some(user) = user {
         if !verify_password(&request_user.password, &user.password)? {
-            return Err(AppError::new(StatusCode::UNAUTHORIZED, "Bad username and/or password"))
+            return Err(AppError::new(StatusCode::UNAUTHORIZED, "incorrect username and/or password"))
         }
 
         let token = create_token(&token_secret.0, user.username.clone())?;
@@ -51,6 +51,6 @@ pub async fn login(
         };
         Ok(Json(ResponseDataUser{data: response}))
     } else {
-        Err(AppError::new(StatusCode::NOT_FOUND, "Bad username and/or password"))
+        Err(AppError::new(StatusCode::BAD_REQUEST, "incorrect username and/or password"))
     }
 }

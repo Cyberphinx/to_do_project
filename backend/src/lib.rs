@@ -8,6 +8,7 @@ mod router;
 mod routes;
 mod database;
 pub mod utilities;
+mod middleware;
 
 
 pub async fn run(app_state: AppState) {
