@@ -1,12 +1,13 @@
 use axum::{extract::State, http::StatusCode, Json};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TryIntoModel};
 
+use super::{RequestCreateUser, ResponseDataUser, ResponseUser};
 use crate::{
     database::users,
-    utilities::{app_error::AppError, jwt::create_token, token_wrapper::TokenWrapper, hash::hash_password},
+    utilities::{
+        app_error::AppError, hash::hash_password, jwt::create_token, token_wrapper::TokenWrapper,
+    },
 };
-
-use super::{RequestCreateUser, ResponseDataUser, ResponseUser};
 
 pub async fn create_user(
     State(db): State<DatabaseConnection>,
@@ -24,15 +25,26 @@ pub async fn create_user(
         .save(&db)
         .await
         .map_err(|error| {
-            eprintln!("Error creating user: {:?}", error);
-            AppError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Something went wrong, please try again",
-            )
+            let error_message = error.to_string();
+
+            if error_message
+                .contains(r#"duplicate key value violates unique constraint "users_username_key""#)
+            {
+                AppError::new(
+                    StatusCode::BAD_REQUEST,
+                    "Username already taken, try again with a different user name",
+                )
+            } else {
+                eprintln!("Error creating user: {:?}", error_message);
+                AppError::new(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Something went wrong, please try again",
+                )
+            }
         })?
         .try_into_model()
         .map_err(|error| {
-            eprintln!("Error converting back into model: {:?}", error);
+            eprintln!("Error converting back into model: {}", error);
             AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Error creating user")
         })?;
 
