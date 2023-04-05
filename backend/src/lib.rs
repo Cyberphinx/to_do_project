@@ -9,6 +9,7 @@ mod routes;
 mod database;
 pub mod utilities;
 mod middleware;
+mod queries;
 
 
 pub async fn run(app_state: AppState) {

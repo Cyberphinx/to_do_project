@@ -1,18 +1,20 @@
-use axum::{extract::State, http::StatusCode, Json};
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use axum::{extract::State, Json};
+use sea_orm::{DatabaseConnection, Set};
 
-use super::{convert_active_to_model, RequestCreateUser, ResponseDataUser, ResponseUser};
+use super::{RequestCreateUser, ResponseDataUser, ResponseUser};
 use crate::{
     database::{
         tasks,
         users::{self, Model},
     },
+    queries::{
+        task_queries::{self, save_active_task},
+        user_queries,
+    },
     utilities::{
         app_error::AppError, hash::hash_password, jwt::create_token, token_wrapper::TokenWrapper,
     },
 };
-
-use crate::database::tasks::Entity as Tasks;
 
 pub async fn create_user(
     State(db): State<DatabaseConnection>,
@@ -26,26 +28,7 @@ pub async fn create_user(
     new_user.username = Set(request_user.username.clone());
     new_user.password = Set(hash_password(&request_user.password)?);
     new_user.token = Set(Some(create_token(&jwt_secret.0, request_user.username)?));
-    let user = new_user.save(&db).await.map_err(|error| {
-        let error_message = error.to_string();
-
-        if error_message
-            .contains(r#"duplicate key value violates unique constraint "users_username_key""#)
-        {
-            AppError::new(
-                StatusCode::BAD_REQUEST,
-                "Username already taken, try again with a different user name",
-            )
-        } else {
-            eprintln!("Error creating user: {:?}", error_message);
-            AppError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Something went wrong, please try again",
-            )
-        }
-    })?;
-
-    let user = convert_active_to_model(user)?;
+    let user = user_queries::save_active_user(&db, new_user).await?;
 
     create_default_tasks_for_user(&db, &user).await?;
 
@@ -62,17 +45,7 @@ async fn create_default_tasks_for_user(
     db: &DatabaseConnection,
     user: &Model,
 ) -> Result<(), AppError> {
-    let default_tasks = Tasks::find()
-        .filter(tasks::Column::IsDefault.eq(Some(true)))
-        .all(db)
-        .await
-        .map_err(|error| {
-            eprintln!("Error getting default tasks: {:?}", error);
-            AppError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Error applying default tasks to new account",
-            )
-        })?;
+    let default_tasks = task_queries::get_default_tasks(db).await?;
 
     for default_task in default_tasks {
         let task = tasks::ActiveModel {
@@ -85,13 +58,7 @@ async fn create_default_tasks_for_user(
             ..Default::default()
         };
 
-        task.save(db).await.map_err(|error| {
-            eprintln!("Error creating task from default: {:?}", error);
-            AppError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Error saving new default task for user",
-            )
-        })?;
+        save_active_task(db, task).await?;
     }
 
     Ok(())

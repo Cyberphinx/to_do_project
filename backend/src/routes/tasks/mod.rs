@@ -2,7 +2,7 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 
 pub mod create_task;
-mod create_task_extractor;
+pub mod create_task_extractor;
 pub mod get_all_tasks;
 pub mod get_one_task;
 pub mod update_tasks;

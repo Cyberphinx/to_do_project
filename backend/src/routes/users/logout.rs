@@ -1,7 +1,7 @@
 use axum::{ Extension, extract::State, http::StatusCode};
-use sea_orm::{DatabaseConnection, IntoActiveModel, Set, ActiveModelTrait};
+use sea_orm::{DatabaseConnection, IntoActiveModel, Set};
 
-use crate::{database::users, utilities::app_error::AppError};
+use crate::{database::users, utilities::app_error::AppError, queries::user_queries::save_active_user};
 
 pub async fn logout(
     Extension(user): Extension<users::Model>,
@@ -10,11 +10,8 @@ pub async fn logout(
     let mut user = user.into_active_model();
 
     user.token = Set(None);
-    user.save(&db).await
-        .map_err(|error| {
-            eprintln!("Error removing token from user: {:?}", error);
-            AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "There was a problem logging out, please try again")
-        })?;
+    
+    save_active_user(&db, user).await?;
 
     Ok(StatusCode::OK)
 }
