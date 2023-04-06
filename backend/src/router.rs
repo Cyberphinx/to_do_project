@@ -1,8 +1,10 @@
 use axum::{
+    http::{HeaderValue, Method},
     middleware,
-    routing::{get, post, put, patch, delete},
+    routing::{delete, get, patch, post, put},
     Router,
 };
+use tower_http::cors::CorsLayer;
 
 use crate::{
     app_state::AppState,
@@ -10,8 +12,11 @@ use crate::{
     routes::{
         hello_world::hello_world,
         tasks::{
-            create_task::create_task, get_all_tasks::get_all_tasks, get_one_task::get_one_task,
-            update_tasks::{mark_completed, mark_uncompleted, update_task}, delete_tasks::soft_delete_task
+            create_task::create_task,
+            delete_tasks::soft_delete_task,
+            get_all_tasks::get_all_tasks,
+            get_one_task::get_one_task,
+            update_tasks::{mark_completed, mark_uncompleted, update_task},
         },
         users::{create_user::create_user, login::login, logout::logout},
     },
@@ -19,6 +24,10 @@ use crate::{
 
 // build the router
 pub fn create_router(app_state: AppState) -> Router {
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin("http://localhost:5175".parse::<HeaderValue>().unwrap());
+
     Router::new()
         .route("/api/v1/users/logout", post(logout))
         .route("/api/v1/tasks", post(create_task))
@@ -36,4 +45,5 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/api/v1/users", post(create_user))
         .route("/api/v1/users/login", post(login))
         .with_state(app_state)
+        .layer(cors)
 }
