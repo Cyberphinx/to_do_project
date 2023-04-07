@@ -26,7 +26,7 @@ use crate::{
 pub fn create_router(app_state: AppState) -> Router {
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
-        .allow_origin("http://localhost:5175".parse::<HeaderValue>().unwrap());
+        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap());
 
     Router::new()
         .route("/api/v1/users/logout", post(logout))
