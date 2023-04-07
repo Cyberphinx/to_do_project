@@ -1,4 +1,19 @@
+<script lang="ts">
+    import {onMount} from "svelte";
 
+    let sms = "";
+    onMount(async() => {
+        sms = await getText();
+    })
 
-<h1>This is the home page</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+    const getText = async () => {
+        const res = await fetch("http://localhost:6006");
+        const data = await res.text();
+        console.log(JSON.stringify(data));
+        return data;
+    }
+
+</script>
+
+<h1>Welcome to Frontend</h1>
+<p>{sms}</p>
