@@ -4,7 +4,7 @@ use axum::{
     routing::{delete, get, patch, post, put},
     Router,
 };
-use tower_http::cors::{CorsLayer, Any};
+use tower_http::cors::{CorsLayer};
 
 use crate::{
     app_state::AppState,

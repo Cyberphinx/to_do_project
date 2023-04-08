@@ -20,5 +20,5 @@
 	const { item } = data;
 </script>
 
-<h1>Welcome to Frontend</h1>
-<p>I'm from server-side fetch (with sveltekit): {item}</p>
+<h1>{item}</h1>
+
