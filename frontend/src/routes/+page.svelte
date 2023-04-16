@@ -1,24 +1,16 @@
 <script lang="ts">
-	//OPTION 1 - client-side fetch without sveltekit:
-	// import {onMount} from "svelte";
+	import { enhance } from '$app/forms';
 
-	// let sms = "";
-	// onMount(async() => {
-	//     sms = await getText();
-	// })
-
-	// const getText = async () => {
-	//     const res = await fetch("http://localhost:6006");
-	//     const data = await res.text();
-	//     console.log(data);
-	//     return data;
-	// }
-
-	//OPTION 2 - server-side fetch with sveltekit:
 	export let data;
 	console.log(data);
-	const { item } = data;
+	// const { item } = data;
 </script>
 
-<h1>{item}</h1>
+<!-- <h1>{item}</h1> -->
+
+<h1>This is the home page</h1>
+
+<form use:enhance method="POST" action="?/logout">
+	<button class="btn btn-outline-danger">Or click here to logout</button>
+</form>
 

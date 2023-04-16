@@ -5,4 +5,6 @@
     <a href="/tasks">Tasks</a>
 </nav>
 
-<slot />
+<main>
+    <slot />
+</main>

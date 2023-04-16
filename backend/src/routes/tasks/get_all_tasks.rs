@@ -8,7 +8,7 @@ use crate::{database::users::Model as UserModel, utilities::app_error::AppError}
 use super::ResponseDataTasks;
 
 pub async fn get_all_tasks(
-    Extension(user): Extension<UserModel>,
+    Extension(user): Extension<UserModel>,  
     State(db): State<DatabaseConnection>,
 ) -> Result<Json<ResponseDataTasks>, AppError> {
     let tasks = queries::task_queries::get_all_tasks(&db, user.id, false)

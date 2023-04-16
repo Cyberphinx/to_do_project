@@ -1,6 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import * as api from '$lib/api.js';
 
+export async function load({ cookies }) {
+	if (cookies.get('jwt')) throw redirect(307, '/');
+}
+
 // export async function load({ fetch }) {
 //     try {
 //         const user = {
@@ -63,7 +67,7 @@ export const actions = {
             // console.log(result);
             // return { result }
 
-            const body = await api.post('api/v1/users', user );
+            const body = await api.post('api/v1/users', user);
 
             if (body.errors) {
                 return fail(401, body);
